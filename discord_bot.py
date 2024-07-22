@@ -1,38 +1,37 @@
+# bot.py
+import os
 import discord
 from discord.ext import commands
 import openai
-import os
 
-# Initialize the bot
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+# Load environment variables
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-# Set up OpenAI API key
-openai.api_key = 'YOUR_OPENAI_API_KEY'
+# Initialize OpenAI API
+openai.api_key = OPENAI_API_KEY
 
-# Event: when the bot is ready
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user.name}')
+# Define the command prefix for the bot
+bot = commands.Bot(command_prefix='!')
 
-# Command: !hello
-@bot.command()
-async def hello(ctx):
-    await ctx.send('Hello! How can I assist you today?')
+# Define the command
+@bot.command(name='command')
+async def command(ctx, *, question: str):
+    try:
+        # Interact with OpenAI's GPT-4 API
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=question,
+            max_tokens=150
+        )
+        # Extract the response text
+        answer = response.choices[0].text.strip()
 
-# Command: !question
-@bot.command()
-async def question(ctx, *, question: str):
-    # Make an API call to OpenAI's GPT-3
-    response = openai.Completion.create(
-        engine="text-davinci-003",  # You can use other engines as well
-        prompt=question,
-        max_tokens=100
-    )
-    
-    answer = response.choices[0].text.strip()
-    await ctx.send(answer)
+        # Send the response to the Discord channel
+        await ctx.send(answer)
+    except Exception as e:
+        # Handle any exceptions
+        await ctx.send(f"An error occurred: {str(e)}")
 
-# Run the bot with your token
-bot.run('YOUR_DISCORD_BOT_TOKEN')
+# Run the bot
+bot.run(DISCORD_TOKEN)
