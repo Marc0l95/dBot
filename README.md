@@ -16,4 +16,3 @@ Use the script to install dependencies locally and provision and activate the lo
 ## Tasks
 - create pipeline for unit testing
 - create deployment and test environment
-
