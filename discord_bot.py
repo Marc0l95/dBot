@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 import openai
 from dotenv import load_dotenv
+import new_commands
 
 # Load environment variables
 load_dotenv()
@@ -25,16 +26,31 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    text = message.content
+    if not message.content.startswith('!'):
+        return
+
+    # Ensure the bot responds only in the specified server and channel
+    if message.guild.id != GUILD_ID or message.channel.id != CHANNEL_ID:
+        return
+
+    if message.content.startswith('!random'):
+        await bot.process_commands(message)
+        return
+    
+    # Extract the command and query
+    query = message.content[1:].strip()
 
     response = openai.ChatCompletion.create(
         model="gpt-4",
-        messages=[
-            {"role": "system", "content": text},
-        ],
+        messages = [
+        {"role": "system", "content": "You are a knowledgeable gamer. Give on point explanations that are short but to the point. Be condescending and a little bit of a memer.:"},
+        {"role": "user", "content": query}
+    ]
     )
 
     await message.channel.send(response.choices[0].message['content'])
+
+new_commands.setup(bot)
 
 # Run the bot
 bot.run(DISCORD_TOKEN)
